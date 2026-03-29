@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.OneHotEncoderModel","timestamp":1774812257703,"sparkVersion":"4.1.1","uid":"OneHotEncoder_4e73e2e2e36a","paramMap":{"inputCol":"Visa Status_idx","outputCol":"Visa Status_ohe"},"defaultParamMap":{"dropLast":true,"handleInvalid":"error","outputCol":"OneHotEncoder_4e73e2e2e36a__output"}}

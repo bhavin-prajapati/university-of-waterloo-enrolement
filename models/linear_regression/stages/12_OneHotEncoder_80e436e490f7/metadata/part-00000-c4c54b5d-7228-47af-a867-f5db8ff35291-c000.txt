@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.OneHotEncoderModel","timestamp":1774812254951,"sparkVersion":"4.1.1","uid":"OneHotEncoder_80e436e490f7","paramMap":{"inputCol":"Fiscal Year_idx","outputCol":"Fiscal Year_ohe"},"defaultParamMap":{"dropLast":true,"handleInvalid":"error","outputCol":"OneHotEncoder_80e436e490f7__output"}}

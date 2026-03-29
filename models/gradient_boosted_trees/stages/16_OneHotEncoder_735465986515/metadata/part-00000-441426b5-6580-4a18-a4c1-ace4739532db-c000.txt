@@ -1,1 +1,0 @@
-{"class":"org.apache.spark.ml.feature.OneHotEncoderModel","timestamp":1774746203504,"sparkVersion":"4.1.1","uid":"OneHotEncoder_735465986515","paramMap":{"inputCol":"Study Year_idx","outputCol":"Study Year_ohe"},"defaultParamMap":{"dropLast":true,"handleInvalid":"error","outputCol":"OneHotEncoder_735465986515__output"}}

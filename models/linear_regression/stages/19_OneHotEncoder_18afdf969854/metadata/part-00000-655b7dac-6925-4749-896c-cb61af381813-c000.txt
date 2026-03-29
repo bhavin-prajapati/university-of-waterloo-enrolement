@@ -1,1 +1,0 @@
-{"class":"org.apache.spark.ml.feature.OneHotEncoderModel","timestamp":1774746187743,"sparkVersion":"4.1.1","uid":"OneHotEncoder_18afdf969854","paramMap":{"inputCol":"Program Grouping_idx","outputCol":"Program Grouping_ohe"},"defaultParamMap":{"dropLast":true,"handleInvalid":"error","outputCol":"OneHotEncoder_18afdf969854__output"}}
