@@ -229,10 +229,10 @@ header h1 {
   padding: 1rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-auto-rows: calc((100vh - 60px - 2rem) / 3);
   gap: 0.75rem;
   height: calc(100vh - 60px);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .placeholder {

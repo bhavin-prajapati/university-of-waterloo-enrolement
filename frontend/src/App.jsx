@@ -7,7 +7,7 @@ import { FIELD_OPTIONS, FIELD_LABELS, DEFAULT_PARAMS } from "./options";
 import MultiSelect from "./MultiSelect";
 
 const API_BASE = "/api";
-const MAX_COMBOS = 500;
+const MAX_COMBOS = 10000;
 const MODELS = ["Linear Regression", "Random Forest", "Gradient-Boosted Trees"];
 const COLORS = ["#8884d8", "#82ca9d", "#ff7300", "#0088fe", "#ff4444"];
 
@@ -66,6 +66,12 @@ export default function App() {
   const [yearTrend, setYearTrend] = useState(null);
   const [termComparison, setTermComparison] = useState(null);
   const [facultyComparison, setFacultyComparison] = useState(null);
+  const [visaComparison, setVisaComparison] = useState(null);
+  const [coopComparison, setCoopComparison] = useState(null);
+  const [studyYearComparison, setStudyYearComparison] = useState(null);
+  const [programLevelComparison, setProgramLevelComparison] = useState(null);
+  const [careerComparison, setCareerComparison] = useState(null);
+  const [attendanceComparison, setAttendanceComparison] = useState(null);
 
   const comboCount = useMemo(
     () => Object.values(params).reduce((n, arr) => n * arr.length, 1),
@@ -96,6 +102,12 @@ export default function App() {
       setYearTrend(summarize(preds, "fiscal_year"));
       setTermComparison(summarize(preds, "term_type"));
       setFacultyComparison(summarize(preds, "faculty_group"));
+      setVisaComparison(summarize(preds, "visa_status"));
+      setCoopComparison(summarize(preds, "coop_regular"));
+      setStudyYearComparison(summarize(preds, "study_year"));
+      setProgramLevelComparison(summarize(preds, "program_level"));
+      setCareerComparison(summarize(preds, "career"));
+      setAttendanceComparison(summarize(preds, "attendance"));
 
       // 2. Model comparison → one batch per model
       const modelResults = await Promise.all(
@@ -224,6 +236,96 @@ export default function App() {
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip />
                   <Bar dataKey="headcount" fill={COLORS[3]} name="Avg Headcount" />
+                </BarChart>
+              </ResponsiveContainer>
+            </section>
+          )}
+
+          {visaComparison && (
+            <section className="chart-card">
+              <h3>Headcount by Visa Status (avg)</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={visaComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="headcount" fill={COLORS[4]} name="Avg Headcount" />
+                </BarChart>
+              </ResponsiveContainer>
+            </section>
+          )}
+
+          {coopComparison && (
+            <section className="chart-card">
+              <h3>Co-op vs Regular (avg)</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={coopComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="headcount" fill="#8dd1e1" name="Avg Headcount" />
+                </BarChart>
+              </ResponsiveContainer>
+            </section>
+          )}
+
+          {studyYearComparison && (
+            <section className="chart-card">
+              <h3>Headcount by Study Year (avg)</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={studyYearComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="headcount" fill="#a4de6c" name="Avg Headcount" />
+                </BarChart>
+              </ResponsiveContainer>
+            </section>
+          )}
+
+          {programLevelComparison && (
+            <section className="chart-card">
+              <h3>Headcount by Program Level (avg)</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={programLevelComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="headcount" fill="#d0ed57" name="Avg Headcount" />
+                </BarChart>
+              </ResponsiveContainer>
+            </section>
+          )}
+
+          {careerComparison && (
+            <section className="chart-card">
+              <h3>Graduate vs Undergraduate (avg)</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={careerComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="headcount" fill="#ffc658" name="Avg Headcount" />
+                </BarChart>
+              </ResponsiveContainer>
+            </section>
+          )}
+
+          {attendanceComparison && (
+            <section className="chart-card">
+              <h3>Full-Time vs Part-Time (avg)</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={attendanceComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="headcount" fill="#ff8042" name="Avg Headcount" />
                 </BarChart>
               </ResponsiveContainer>
             </section>
