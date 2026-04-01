@@ -2,7 +2,7 @@
 
 Predict student headcounts at the University of Waterloo using Apache Spark MLlib models served via a FastAPI endpoint.
 
-## UI
+## Enrolment Prediction Dashboard
 
 ![Screenshot](ui1.png)
 
