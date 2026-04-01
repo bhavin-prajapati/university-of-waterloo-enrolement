@@ -2,6 +2,23 @@
 
 Predict student headcounts at the University of Waterloo using Apache Spark MLlib models served via a FastAPI endpoint.
 
+## UI
+
+![Screenshot](ui.png)
+
+## Quick Setup
+
+In the project directory, you can run:
+
+```sh
+# Terminal 1 — start the FastAPI backend
+python api.py
+
+# Terminal 2 — start the React dev server
+cd frontend && npm run dev
+```
+
+
 ## Project Structure
 
 ```

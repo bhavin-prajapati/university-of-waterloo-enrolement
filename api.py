@@ -6,13 +6,14 @@ and predicts Student Headcounts based on the given parameters.
 import json
 import os
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, expm1, greatest, lit, substring
+from pyspark.sql.functions import col, expm1, greatest, lit, monotonically_increasing_id, substring
 from pyspark.ml import PipelineModel
 
 
@@ -53,6 +54,10 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     model_name: str
     predicted_student_headcount: float
+
+
+class BatchPredictionRequest(BaseModel):
+    requests: List[PredictionRequest]
 
 
 # ── Application state (populated at startup) ─────────────────────────────────
@@ -109,6 +114,14 @@ app = FastAPI(
     title="UW Enrolment Prediction API",
     description="Predict student headcounts using trained PySpark ML models.",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -183,6 +196,96 @@ def predict(req: PredictionRequest, model_name: Optional[str] = None):
         model_name=chosen,
         predicted_student_headcount=round(predicted_count, 2),
     )
+
+
+@app.post("/predict/batch")
+def predict_batch(req: BatchPredictionRequest, model_name: Optional[str] = None):
+    """
+    Batch-predict Student Headcounts for multiple parameter combinations.
+
+    Accepts a list of prediction requests and returns all predictions
+    in a single response.  Much more efficient than calling ``/predict``
+    in a loop because only one Spark transform is executed.
+    """
+    if not req.requests:
+        return {"model_name": model_name or _state["best_model_name"], "predictions": []}
+
+    chosen = model_name or _state["best_model_name"]
+
+    if chosen not in _state["models"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown model '{chosen}'. "
+                   f"Available: {list(_state['models'].keys())}",
+        )
+
+    spark: SparkSession = _state["spark"]
+    pipeline_model: PipelineModel = _state["models"][chosen]
+
+    rows = [
+        {
+            "Fiscal Year": r.fiscal_year,
+            "Term Type": r.term_type,
+            "Career": r.career,
+            "Program Level": r.program_level,
+            "Study Year": r.study_year,
+            "Campus": r.campus,
+            "Faculty (group)": r.faculty_group,
+            "Program Grouping": r.program_grouping,
+            "Coop Regular": r.coop_regular,
+            "Work Term": r.work_term,
+            "Attendance": r.attendance,
+            "Visa Status": r.visa_status,
+        }
+        for r in req.requests
+    ]
+
+    input_df = spark.createDataFrame(rows)
+    input_df = input_df.withColumn(
+        "numeric_year",
+        substring(col("Fiscal Year"), 1, 4).cast("double"),
+    )
+    input_df = input_df.withColumn("_idx", monotonically_increasing_id())
+
+    predictions = pipeline_model.transform(input_df)
+    predictions = predictions.withColumn(
+        "final_prediction",
+        greatest(expm1(col("prediction")), lit(1.0)),
+    )
+
+    result_rows = (
+        predictions
+        .orderBy("_idx")
+        .select(
+            "Fiscal Year", "Term Type", "Career", "Program Level",
+            "Study Year", "Campus", "Faculty (group)", "Program Grouping",
+            "Coop Regular", "Work Term", "Attendance", "Visa Status",
+            "final_prediction",
+        )
+        .collect()
+    )
+
+    return {
+        "model_name": chosen,
+        "predictions": [
+            {
+                "fiscal_year": row["Fiscal Year"],
+                "term_type": row["Term Type"],
+                "career": row["Career"],
+                "program_level": row["Program Level"],
+                "study_year": row["Study Year"],
+                "campus": row["Campus"],
+                "faculty_group": row["Faculty (group)"],
+                "program_grouping": row["Program Grouping"],
+                "coop_regular": row["Coop Regular"],
+                "work_term": row["Work Term"],
+                "attendance": row["Attendance"],
+                "visa_status": row["Visa Status"],
+                "predicted_student_headcount": round(float(row["final_prediction"]), 2),
+            }
+            for row in result_rows
+        ],
+    }
 
 
 if __name__ == "__main__":
