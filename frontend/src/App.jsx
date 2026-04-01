@@ -7,7 +7,7 @@ import { FIELD_OPTIONS, FIELD_LABELS, DEFAULT_PARAMS } from "./options";
 import MultiSelect from "./MultiSelect";
 
 const API_BASE = "/api";
-const MAX_COMBOS = 10000;
+const MAX_COMBOS = 100000;
 const MODELS = ["Linear Regression", "Random Forest", "Gradient-Boosted Trees"];
 const COLORS = ["#8884d8", "#82ca9d", "#ff7300", "#0088fe", "#ff4444"];
 
