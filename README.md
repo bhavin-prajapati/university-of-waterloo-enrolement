@@ -6,9 +6,6 @@ Predict student headcounts at the University of Waterloo using Apache Spark MLli
 
 ![Screenshot](ui1.png)
 
-![Screenshot](ui2.png)
-
-
 ## Quick Setup
 
 In the project directory, you can run:
