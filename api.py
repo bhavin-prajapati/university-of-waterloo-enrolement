@@ -5,6 +5,8 @@ and predicts Student Headcounts based on the given parameters.
 
 import json
 import os
+os.environ["PYSPARK_PYTHON"] = r"C:\Users\mathi\anaconda3\envs\waterloo\python.exe"
+os.environ["PYSPARK_DRIVER_PYTHON"] = r"C:\Users\mathi\anaconda3\envs\waterloo\python.exe"
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
@@ -70,7 +72,7 @@ async def lifespan(app: FastAPI):
     """Load Spark session and models once at startup, clean up on shutdown."""
     os.environ.setdefault(
         "JAVA_HOME",
-        "/usr/local/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home",
+        r"C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot"
     )
 
     spark = (
@@ -86,7 +88,8 @@ async def lifespan(app: FastAPI):
     spark.sparkContext.setLogLevel("ERROR")
 
     # Load model metadata
-    metadata_path = os.path.join("models", "metadata.json")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    metadata_path = os.path.join(BASE_DIR, "models", "metadata.json")
     with open(metadata_path) as f:
         metadata = json.load(f)
 
@@ -96,7 +99,11 @@ async def lifespan(app: FastAPI):
     # Load all saved PipelineModels
     loaded_models = {}
     for name, info in models_info.items():
-        loaded_models[name] = PipelineModel.load(info["path"])
+        clean_path = info["path"].replace("/", "\\")
+        model_path = os.path.join(BASE_DIR, clean_path)
+        
+        print("Loading model from:", model_path)  # debug
+        loaded_models[name] = PipelineModel.load(model_path)
 
     _state["spark"] = spark
     _state["metadata"] = metadata
@@ -135,6 +142,9 @@ def list_models():
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(req: PredictionRequest, model_name: Optional[str] = None):
+    
+    year = int(req.fiscal_year.split("/")[0])
+    
     """
     Predict Student Headcounts.
 
@@ -156,7 +166,7 @@ def predict(req: PredictionRequest, model_name: Optional[str] = None):
 
     # Build a single-row Spark DataFrame that matches the training schema
     row = {
-        "Fiscal Year": req.fiscal_year,
+        "Fiscal Year": year,
         "Term Type": req.term_type,
         "Career": req.career,
         "Program Level": req.program_level,
