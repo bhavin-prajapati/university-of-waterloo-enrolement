@@ -55,6 +55,7 @@ python api.py
 
 The server starts on **<http://localhost:8000>**.
 Interactive docs are available at **<http://localhost:8000/docs>**.
+The frontend **<http://localhost:3000/>**.
 
 ## API Endpoints
 
