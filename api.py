@@ -5,8 +5,8 @@ and predicts Student Headcounts based on the given parameters.
 
 import json
 import os
-os.environ["PYSPARK_PYTHON"] = r"C:\Users\mathi\anaconda3\envs\waterloo\python.exe"
-os.environ["PYSPARK_DRIVER_PYTHON"] = r"C:\Users\mathi\anaconda3\envs\waterloo\python.exe"
+os.environ["PYSPARK_PYTHON"] = sys.executable
+os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
