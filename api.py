@@ -5,6 +5,9 @@ and predicts Student Headcounts based on the given parameters.
 
 import json
 import os
+import sys
+os.environ["PYSPARK_PYTHON"] = sys.executable
+os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
@@ -68,10 +71,12 @@ _state: dict = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Load Spark session and models once at startup, clean up on shutdown."""
-    os.environ.setdefault(
-        "JAVA_HOME",
-        "/usr/local/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home",
-    )
+    _java_home_defaults = {
+        "win32": r"C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot",
+        "darwin": "/usr/local/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home",
+    }
+    if sys.platform in _java_home_defaults:
+        os.environ.setdefault("JAVA_HOME", _java_home_defaults[sys.platform])
 
     spark = (
         SparkSession.builder
@@ -86,7 +91,8 @@ async def lifespan(app: FastAPI):
     spark.sparkContext.setLogLevel("ERROR")
 
     # Load model metadata
-    metadata_path = os.path.join("models", "metadata.json")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    metadata_path = os.path.join(BASE_DIR, "models", "metadata.json")
     with open(metadata_path) as f:
         metadata = json.load(f)
 
@@ -96,7 +102,14 @@ async def lifespan(app: FastAPI):
     # Load all saved PipelineModels
     loaded_models = {}
     for name, info in models_info.items():
-        loaded_models[name] = PipelineModel.load(info["path"])
+        if sys.platform == "win32":
+            clean_path = info["path"].replace("/", "\\")
+            model_path = os.path.join(BASE_DIR, clean_path)
+        else:
+            model_path = os.path.join(BASE_DIR, *info["path"].split("/"))
+        
+        print("Loading model from:", model_path)  # debug
+        loaded_models[name] = PipelineModel.load(model_path)
 
     _state["spark"] = spark
     _state["metadata"] = metadata
@@ -135,6 +148,9 @@ def list_models():
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(req: PredictionRequest, model_name: Optional[str] = None):
+    
+    year = int(req.fiscal_year.split("/")[0])
+    
     """
     Predict Student Headcounts.
 
@@ -156,7 +172,7 @@ def predict(req: PredictionRequest, model_name: Optional[str] = None):
 
     # Build a single-row Spark DataFrame that matches the training schema
     row = {
-        "Fiscal Year": req.fiscal_year,
+        "Fiscal Year": year,
         "Term Type": req.term_type,
         "Career": req.career,
         "Program Level": req.program_level,
@@ -290,4 +306,4 @@ def predict_batch(req: BatchPredictionRequest, model_name: Optional[str] = None)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=False)
