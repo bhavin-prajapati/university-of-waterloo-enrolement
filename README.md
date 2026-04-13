@@ -15,7 +15,7 @@ In the project directory, you can run:
 python api.py
 
 # Terminal 2 — start the React dev server
-cd frontend && npm run dev
+cd frontend && npm install && npm run dev
 ```
 
 
